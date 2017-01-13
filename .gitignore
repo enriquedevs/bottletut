@@ -1,0 +1,8 @@
+*.pyc
+.netrwhist
+.vim/sessions
+.DS_Store
+*.sw?
+tags
+.project
+.idea
