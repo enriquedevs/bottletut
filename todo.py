@@ -41,18 +41,19 @@ def edit_item(no):
 
     if request.GET.get('save','').strip():
         edit = request.GET.get('status','').strip()
-        status = request.GET.get('task','').strip()
+        new_value = request.GET.get('task','').strip()
 
-        if status == 'open':
+        if edit == 'open':
             status = 1
         else:
             status = 0
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("UPDATE todo SET task = ?, status = ? WHERE id LIKE ?", (edit,status,no))
+        c.execute("UPDATE todo SET task = ?, status = ? WHERE id LIKE ?", (new_value,status,no))
         conn.commit()
-
+        c.close()
+        
         return '<p>The item number %s was successfully updated</p>' %no
 
     else:
