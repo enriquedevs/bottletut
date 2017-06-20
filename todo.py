@@ -63,6 +63,24 @@ def edit_item(no):
         cur_data = c.fetchone()
 
         return template('edit_task', old = cur_data, no = no)
+    
+@route('/delete/<no:int>', method='GET')
+def edit_item(no):
+    
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT id FROM todo WHERE id = ?", (str(no),))
+    id_to_delete = c.fetchone()
+    
+    if id_to_delete is not None:
+        c.execute("DELETE FROM todo WHERE id = ?", (str(no),))
+        conn.commit()
+        c.close()
+        return '<p>The item number %s was successfully deleted</p>' %no
+    
+    else:
+        c.close()
+        return '<p>The item number %s was already not present in the database</p>' %no
 
 @route('/item<item:re:[0-9]+>')
 def show_item(item):

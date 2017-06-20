@@ -11,6 +11,7 @@
 	 		<td>{{col}}</td>
 			%end
 			<td><button onclick="redirectToEditItem(this)">Edit Item</button></td>
+			<td><button onclick="redirectToDeleteItem(this)">Delete Item</button></td>
 		</tr>
 		%end
 	</table>
@@ -22,9 +23,15 @@
 	</form>
 	<script type="text/javascript">
 		function redirectToEditItem(e){
-			// retrieving item number from button's row clicked and then redirect to edit page
+			// retrieving item number from button's row clicked and then redirect to edit item page
 			var no = e.parentNode.parentNode.childNodes[1].innerText; 
 			if (no) window.location.href='/edit/' + no;
+		};
+		
+		function redirectToDeleteItem(e){
+			// retrieving item number from button's row clicked and then redirect to delete item page
+			var no = e.parentNode.parentNode.childNodes[1].innerText; 
+			if (no) window.location.href='/delete/' + no;
 		};
 	</script>
 </body>
