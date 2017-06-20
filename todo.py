@@ -9,7 +9,7 @@ def todo_list():
 
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT id, task FROM todo WHERE status LIKE '1';")
+    c.execute("SELECT id, task FROM todo WHERE status = '1';")
     result = c.fetchall()
     c.close()
 
@@ -50,7 +50,7 @@ def edit_item(no):
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("UPDATE todo SET task = ?, status = ? WHERE id LIKE ?", (new_value,status,no))
+        c.execute("UPDATE todo SET task = ?, status = ? WHERE id = ?", (new_value,status,no))
         conn.commit()
         c.close()
         
@@ -59,7 +59,7 @@ def edit_item(no):
     else:
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("SELECT task FROM todo WHERE id LIKE ?", (str(no)))
+        c.execute("SELECT task FROM todo WHERE id = ?", (str(no),))
         cur_data = c.fetchone()
 
         return template('edit_task', old = cur_data, no = no)
@@ -69,7 +69,7 @@ def show_item(item):
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("SELECT task FROM todo WHERE id LIKE ?", (item))
+        c.execute("SELECT task FROM todo WHERE id = ?", (item))
         result = c.fetchall()
         c.close()
 
@@ -88,7 +88,7 @@ def show_json(json):
 
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT task FROM todo WHERE id LIKE ?", (json))
+    c.execute("SELECT task FROM todo WHERE id = ?", (json))
     result = c.fetchall()
     c.close()
 
