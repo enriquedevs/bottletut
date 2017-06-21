@@ -85,37 +85,32 @@ def edit_item(no):
 @route('/item<item:re:[0-9]+>')
 def show_item(item):
 
+        format = request.query.get('format');
+        
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("SELECT task FROM todo WHERE id = ?", (item))
+        c.execute("SELECT task FROM todo WHERE id = ?", (item,))
         result = c.fetchall()
         c.close()
-
-        if not result:
-            return 'This item number does not exist!'
+        
+        if format == 'json':
+            
+            if not result:
+                return {'task':'This item number does not exist!'}
+            else:
+                return {'Task': result[0]}
+            
         else:
-            return 'Task: %s' %result[0]
+    
+            if not result:
+                return 'This item number does not exist!'
+            else:
+                return 'Task: %s' %result[0]
 
 @route('/help')
 def help():
-
     static_file('help.html', root='.')
-
-@route('/json<json:re:[0-9]+>')
-def show_json(json):
-
-    conn = sqlite3.connect('todo.db')
-    c = conn.cursor()
-    c.execute("SELECT task FROM todo WHERE id = ?", (json))
-    result = c.fetchall()
-    c.close()
-
-    if not result:
-        return {'task':'This item number does not exist!'}
-    else:
-        return {'Task': result[0]}
-
-
+    
 @error(403)
 def mistake403(code):
     return 'There is a mistake in your url!'
