@@ -1,12 +1,55 @@
 import sqlite3
-from bottle import route, run, debug, template, request, static_file, error
+from bottle import route, run, debug, template, request, response, static_file, error
 
 # only needed when you run Bottle on mod_wsgi
 from bottle import default_app
 
-@route('/todo')
-def todo_list():
+"""Decorator to validate user in session"""
+def validate_user(func):
+    
+    def verify_user(*args, **kwargs):
+        username = request.cookies.user
+        
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+        c.execute("SELECT username FROM user WHERE username = ?", (username,))
+        user = c.fetchone()
+        
+        if user is not None:
+            return func(*args, **kwargs)
+        else:
+            return template('user_error.tpl')
+        
+    return verify_user
+     
+@route('/')
+def login():
+    return template('login.tpl')
+    
+@route('/verify-credentials', method='POST')
+def verify_credentials():
+    
+    username = request.forms.get("username")
+    password = request.forms.get("password")
+    
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT username FROM user WHERE username = ? AND password = ?", (username,password,))
+    user = c.fetchone()
+    
+    if user is not None:
+        response.set_cookie("user", username)
+        return todo_list_page()
+    else:
+        return template('user_error.tpl')
 
+@route('/todo')
+@validate_user
+def todo_list():
+    return todo_list_page()
+
+def todo_list_page():
+    
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     c.execute("SELECT id, task FROM todo WHERE status = '1';")
@@ -17,6 +60,7 @@ def todo_list():
     return output
 
 @route('/new', method='GET')
+@validate_user
 def new_item():
 
     if request.GET.get('save','').strip():
@@ -25,7 +69,7 @@ def new_item():
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
 
-        c.execute("INSERT INTO todo (task,status) VALUES (?,?)", (new,1))
+        c.execute("INSERT INTO todo (task,status) VALUES (?,?)", (new,1,))
         new_id = c.lastrowid
 
         conn.commit()
@@ -37,6 +81,7 @@ def new_item():
         return template('new_task.tpl')
 
 @route('/edit/<no:int>', method='GET')
+@validate_user
 def edit_item(no):
 
     if request.GET.get('save','').strip():
@@ -50,7 +95,7 @@ def edit_item(no):
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("UPDATE todo SET task = ?, status = ? WHERE id = ?", (new_value,status,no))
+        c.execute("UPDATE todo SET task = ?, status = ? WHERE id = ?", (new_value,status,no,))
         conn.commit()
         c.close()
         
@@ -65,6 +110,7 @@ def edit_item(no):
         return template('edit_task', old = cur_data, no = no)
     
 @route('/delete/<no:int>', method='GET')
+@validate_user
 def edit_item(no):
     
     conn = sqlite3.connect('todo.db')
@@ -83,6 +129,7 @@ def edit_item(no):
         return '<p>The item number %s was already not present in the database</p>' %no
 
 @route('/item<item:re:[0-9]+>')
+@validate_user
 def show_item(item):
 
         format = request.query.get('format');
@@ -94,14 +141,11 @@ def show_item(item):
         c.close()
         
         if format == 'json':
-            
             if not result:
                 return {'task':'This item number does not exist!'}
             else:
                 return {'Task': result[0]}
-            
         else:
-    
             if not result:
                 return 'This item number does not exist!'
             else:
