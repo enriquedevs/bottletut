@@ -56,7 +56,7 @@ def todo_list_page():
     result = c.fetchall()
     c.close()
 
-    output = template('make_table', rows=result)
+    output = template('make_table.tpl', rows=result)
     return output
 
 @route('/new', method='GET')
@@ -76,8 +76,8 @@ def new_item():
         conn.commit()
         c.close()
 
-        return '<p>The new task was inserted into the database, the ID is %s</p>' % new_id
-
+        return template('message.tpl', message = 'The new task was inserted into the database, the ID is %s' %new_id, render_todolist_redirect = True)
+        
     else:
         return template('new_task.tpl')
 
@@ -101,7 +101,7 @@ def edit_item(no):
         conn.commit()
         c.close()
         
-        return '<p>The item number %s was successfully updated</p>' %no
+        return template('message.tpl', message = 'The item number %s was successfully updated' %no, render_todolist_redirect = True)
 
     else:
         conn = sqlite3.connect('todo.db')
@@ -109,7 +109,7 @@ def edit_item(no):
         c.execute("SELECT task FROM todo WHERE id = ?", (str(no),))
         cur_data = c.fetchone()
 
-        return template('edit_task', old = cur_data, no = no)
+        return template('edit_task.tpl', old = cur_data, no = no)
     
 @route('/delete/<no:int>', method='GET')
 @validate_user
@@ -124,11 +124,11 @@ def edit_item(no):
         c.execute("DELETE FROM todo WHERE id = ?", (str(no),))
         conn.commit()
         c.close()
-        return '<p>The item number %s was successfully deleted</p>' %no
+        return template('message.tpl', message = 'The item number %s was successfully deleted' %no, render_todolist_redirect = True)
     
     else:
         c.close()
-        return '<p>The item number %s was already not present in the database</p>' %no
+        return template('message.tpl', message = 'The item number %s was already not present in the database' %no, render_todolist_redirect = True)
 
 @route('/item<item:re:[0-9]+>')
 @validate_user
@@ -159,11 +159,11 @@ def help():
     
 @error(403)
 def mistake403(code):
-    return 'There is a mistake in your url!'
-
+    return template('message.tpl', message = 'There is a mistake in your url!', render_todolist_redirect = False)
+    
 @error(404)
 def mistake404(code):
-    return 'Sorry, this page does not exist!'
+    return template('message.tpl', message = 'Sorry, this page does not exist!', render_todolist_redirect = False)
 
 
 debug(True)
