@@ -52,7 +52,7 @@ def todo_list_page():
     
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT id, task FROM todo WHERE status = '1';")
+    c.execute("SELECT id, task, last_edited_by FROM todo WHERE status = '1';")
     result = c.fetchall()
     c.close()
 
