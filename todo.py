@@ -66,10 +66,11 @@ def new_item():
     if request.GET.get('save','').strip():
 
         new = request.GET.get('task', '').strip()
+        username = request.cookies.user
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
 
-        c.execute("INSERT INTO todo (task,status) VALUES (?,?)", (new,1,))
+        c.execute("INSERT INTO todo (task,status,last_edited_by) VALUES (?,?,?)", (new,1,username,))
         new_id = c.lastrowid
 
         conn.commit()
@@ -87,6 +88,7 @@ def edit_item(no):
     if request.GET.get('save','').strip():
         edit = request.GET.get('status','').strip()
         new_value = request.GET.get('task','').strip()
+        username = request.cookies.user
 
         if edit == 'open':
             status = 1
@@ -95,7 +97,7 @@ def edit_item(no):
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("UPDATE todo SET task = ?, status = ? WHERE id = ?", (new_value,status,no,))
+        c.execute("UPDATE todo SET task = ?, status = ?, last_edited_by = ? WHERE id = ?", (new_value,status,username,no,))
         conn.commit()
         c.close()
         
